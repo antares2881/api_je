@@ -19,6 +19,7 @@ use App\Http\Controllers\DivipoleController;
 use App\Http\Controllers\DivipolepreconteoController;
 use App\Http\Controllers\Estadistica2019Controller;
 use App\Http\Controllers\Estadisticas2022Controller;
+use App\Http\Controllers\Estadisticas2026Controller;
 use App\Http\Controllers\FirmaController;
 use App\Http\Controllers\HistoricomunicipioController;
 use App\Http\Controllers\IpreporteController;
@@ -137,6 +138,16 @@ Route::group(['middleware' => 'auth:api'], function(){
     Route::get('partidos2022/{dpto}/{corporacion}', [Estadisticas2022Controller::class, 'getPartidos']);
     Route::get('candidatos2022/{dpto}/{corporacion}/{partido}', [Estadisticas2022Controller::class, 'getCandidatos']);
     Route::post('estadisticas2022', [Estadisticas2022Controller::class, 'estadisticas2022']);
+
+    //Estadisticas 2026
+    Route::get('corporaciones2026', [Estadisticas2026Controller::class, 'getCorporaciones']);
+    Route::get('partidos2026/{dpto}/{corporacion}', [Estadisticas2026Controller::class, 'getPartidos']);
+    Route::get('puestos2026/{dpto}/{mcpio}', [Estadisticas2026Controller::class, 'getPuestos']);
+    Route::get('candidatos2026/{dpto?}/{corporacion?}/{partido?}', [Estadisticas2026Controller::class, 'getCandidatos']);
+    Route::get('estadisticas2026/{corporacion}/{dpto?}/{tipo_reporte?}/{mun?}/{par?}/{can?}/{puesto?}', [Estadisticas2026Controller::class, 'estadisticas2026']);
+    Route::get('votacion_por_municipio2026/{corporacion?}', [Estadisticas2026Controller::class, 'votacion_por_municipio']);
+    Route::get('regiones2026', [Estadisticas2026Controller::class, 'regiones']);
+
    
     //Divipoles
     Route::get('zonas/{dpto}/{mcpio}', [DivipoleController::class, 'zonas']);

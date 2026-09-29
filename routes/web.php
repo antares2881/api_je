@@ -10,6 +10,7 @@ use App\Http\Controllers\LidereController;
 use App\Http\Controllers\ListadovotanteController;
 use App\Http\Controllers\PreconteoController;
 use App\Http\Controllers\Estadisticas2022Controller;
+use App\Http\Controllers\Estadisticas2026Controller;
 use App\Http\Controllers\Estadisticas2023Controller;
 use App\Http\Controllers\MunicipioController;
 use App\Http\Controllers\DepartamentoController;
@@ -63,6 +64,14 @@ Route::get('partidos2022/{dpto}/{corporacion}', [Estadisticas2022Controller::cla
 Route::get('puestos2022/{dpto}/{mcpio}', [Estadisticas2022Controller::class, 'getPuestos']);
 Route::get('candidatos2022/{dpto}/{corporacion}/{partido}', [Estadisticas2022Controller::class, 'getCandidatos']);
 Route::get('/estadisticas2022/{corporacion}/{dpto}/{tipo_reporte}/{mun}/{par}/{can}/{puesto}', [Estadisticas2022Controller::class, 'estadisticas2022']);
+
+//Estadisticas 2026
+Route::get('corporaciones2026', [Estadisticas2026Controller::class, 'getCorporaciones']);
+Route::get('partidos2026/{dpto}/{corporacion}', [Estadisticas2026Controller::class, 'getPartidos']);
+Route::get('puestos2026/{dpto}/{mcpio}', [Estadisticas2026Controller::class, 'getPuestos']);
+Route::get('candidatos2026/{dpto?}/{corporacion?}/{partido?}', [Estadisticas2026Controller::class, 'getCandidatos']);
+Route::get('estadisticas2026/{corporacion}/{dpto?}/{tipo_reporte?}/{mun?}/{par?}/{can?}/{puesto?}', [Estadisticas2026Controller::class, 'estadisticas2026']);
+
 Route::get('departamentos', [DepartamentoController::class, 'index']);
 Route::get('departamentos/{id}', [DepartamentoController::class, 'show']);
 Route::get('get_municipio/{departamento_id}/{municipio_id}', [MunicipioController::class, 'get_municipio']);
