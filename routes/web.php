@@ -11,6 +11,7 @@ use App\Http\Controllers\ListadovotanteController;
 use App\Http\Controllers\PreconteoController;
 use App\Http\Controllers\Estadisticas2022Controller;
 use App\Http\Controllers\Estadisticas2026Controller;
+use App\Http\Controllers\EstadisticasSegundaVuelta2026Controller;
 use App\Http\Controllers\Estadisticas2023Controller;
 use App\Http\Controllers\MunicipioController;
 use App\Http\Controllers\DepartamentoController;
@@ -71,6 +72,13 @@ Route::get('partidos2026/{dpto}/{corporacion}', [Estadisticas2026Controller::cla
 Route::get('puestos2026/{dpto}/{mcpio}', [Estadisticas2026Controller::class, 'getPuestos']);
 Route::get('candidatos2026/{dpto?}/{corporacion?}/{partido?}', [Estadisticas2026Controller::class, 'getCandidatos']);
 Route::get('estadisticas2026/{corporacion}/{dpto?}/{tipo_reporte?}/{mun?}/{par?}/{can?}/{puesto?}', [Estadisticas2026Controller::class, 'estadisticas2026']);
+
+// Estadisticas segunda vuelta 2026
+Route::get('corporaciones_segunda_vuelta2026', [EstadisticasSegundaVuelta2026Controller::class, 'getCorporaciones']);
+Route::get('partidos_segunda_vuelta2026/{dpto}', [EstadisticasSegundaVuelta2026Controller::class, 'getPartidos']);
+Route::get('puestos_segunda_vuelta2026/{dpto}/{mcpio}', [EstadisticasSegundaVuelta2026Controller::class, 'getPuestos']);
+Route::get('candidatos_segunda_vuelta2026/{dpto?}/{partido?}', [EstadisticasSegundaVuelta2026Controller::class, 'getCandidatos']);
+Route::get('estadisticas_segunda_vuelta2026/{dpto?}/{tipo_reporte?}/{mun?}/{par?}/{can?}/{puesto?}', [EstadisticasSegundaVuelta2026Controller::class, 'estadisticas2026']);
 
 Route::get('departamentos', [DepartamentoController::class, 'index']);
 Route::get('departamentos/{id}', [DepartamentoController::class, 'show']);
