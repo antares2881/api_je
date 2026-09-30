@@ -8,6 +8,23 @@ use Illuminate\Database\Eloquent\Model;
 class Testigo extends Model
 {
     use HasFactory;
+
+    public function scopeConLider($query)
+    {
+        return $query->leftJoin('lideres', 'testigos.lidere_id', '=', 'lideres.id')
+            ->select('testigos.*', 'lideres.nombres as lider_nombres', 'lideres.apellidos as lider_apellidos');
+    }
+
+    public function puestoVotacion()
+    {
+        return $this->belongsTo(Divipoletestigo::class, 'divipoletestigo_id');
+    }
+
+    public function lider()
+    {
+        return $this->belongsTo(Lidere::class, 'lidere_id');
+    }
+
     public function partido()
     {
         return $this->hasOneThrough(

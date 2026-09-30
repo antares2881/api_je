@@ -45,6 +45,7 @@ use App\Http\Controllers\TipoempleadoController;
 use App\Http\Controllers\TurnoController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\VehiculoController;
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
@@ -61,6 +62,14 @@ Route::get('unauthorized',function(Request $r){
 })->name('api.unauthorized');
 
 Route::group(['middleware' => 'auth:api'], function(){
+
+    // Vehículos
+    Route::get('vehiculos', [VehiculoController::class, 'getVehiculos']);
+    Route::get('vehiculos-lider/{lidere_id}', [VehiculoController::class, 'getVehiculosLider'])->whereNumber('lidere_id');
+    Route::get('vehiculos/{id}', [VehiculoController::class, 'show'])->whereNumber('id');
+    Route::post('vehiculos', [VehiculoController::class, 'store']);
+    Route::match(['put', 'patch'], 'vehiculos/{id}', [VehiculoController::class, 'update'])->whereNumber('id');
+    Route::delete('vehiculos/{id}', [VehiculoController::class, 'delete'])->whereNumber('id');
 
     //Asistencia
     Route::get('asistencia/{ced}', [AsistenciaController::class, 'verificarAsistencia']);
@@ -265,6 +274,7 @@ Route::group(['middleware' => 'auth:api'], function(){
     Route::get('sublideres/{lidere_id}', [SublidereController::class, 'getSublideres']);
 
     Route::get('testigos', [TestigoController::class, 'index']);
+    Route::get('testigos-lider/{lidere_id}', [TestigoController::class, 'getTestigosLider'])->whereNumber('lidere_id');
     Route::post('testigos', [TestigoController::class, 'store']);
     Route::post('testigos-puesto', [TestigoController::class, 'testigos_puesto']);
     Route::put('testigos/{id}', [TestigoController::class, 'update']);

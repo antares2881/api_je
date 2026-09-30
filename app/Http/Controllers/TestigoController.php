@@ -15,7 +15,7 @@ class TestigoController extends Controller
         return 'ok';
     }
     public function index(){
-        $testigos = Testigo::with('mesas')->where('candidato_id', Auth::user()->candidato_id)->get();
+        $testigos = Testigo::conLider()->with(['mesas', 'puestoVotacion'])->where('testigos.candidato_id', Auth::user()->candidato_id)->get();
         $data = array(
             'status' => 'success',
             'code' => 200,
@@ -24,13 +24,28 @@ class TestigoController extends Controller
         return response()->json($data, $data['code']);
     }
 
+    public function getTestigosLider($lidere_id)
+    {
+        $testigos = Testigo::conLider()->with(['mesas', 'puestoVotacion'])
+            ->where('testigos.candidato_id', Auth::user()->candidato_id)
+            ->where('testigos.lidere_id', $lidere_id)
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'code' => 200,
+            'testigos' => $testigos,
+        ]);
+    }
+
     public function store(Request $request){
 
         $validator = \Validator::make($request->all(), [
             'cedula' => 'required',
             'nom1' => 'required',
             'ape1' => 'required',
-            'partido_id' => 'required'
+            'partido_id' => 'required',
+            'lidere_id' => 'nullable|integer|exists:lideres,id'
         ]);
 
         if($validator->fails()){
@@ -41,6 +56,7 @@ class TestigoController extends Controller
         $testigo->divipoletestigo_id = $request->divipoletestigo_id;
         $testigo->candidato_id = Auth::user()->candidato_id;
         $testigo->partido_id = $request->partido_id;
+        $testigo->lidere_id = $request->lidere_id;
         $testigo->cedula = $request->cedula;
         $testigo->nom1 = $request->nom1;
         $testigo->nom2 = $request->nom2;
@@ -52,7 +68,7 @@ class TestigoController extends Controller
         
         $testigo->save();
 
-        $mesa = Testigo::find($request->id);
+        $testigo = Testigo::conLider()->findOrFail($testigo->id);
 
         $data = array(
             'status' => 'success',
@@ -67,7 +83,9 @@ class TestigoController extends Controller
         $zona = $request->zona;
         $puesto = $request->puesto;
 
-        $testigos = Divipoletestigo::with('testigo')->where([
+        $testigos = Divipoletestigo::with(['testigo' => function ($query) {
+            $query->conLider();
+        }])->where([
             'cod_zona' => $zona,
             'cod_puesto' => $puesto
         ])->get();
@@ -81,7 +99,7 @@ class TestigoController extends Controller
     }
 
     public function testigosxmcpio($dpto, $mcpio){ //Funcion sin probar
-        $testigos = Testigo::with('mesas')
+        $testigos = Testigo::conLider()->with('mesas')
             ->where([
             ['departamento_id', $dpto],
             ['municipio_id', $mcpio],
@@ -95,47 +113,37 @@ class TestigoController extends Controller
     }
     
     public function update(Request $request, $id){
+        $testigo = Testigo::findOrFail($id);
         $validator = \Validator::make($request->all(), [
-            'nom1' => 'required',
-            'ape1' => 'required',
-            'celular' => 'required',
-            'departamento_id' => 'required',
-            'municipio_id' => 'required',
-            'zona' => 'required',
-            'puesto' => 'required',
-            'codigo_interno' => 'required',
+            'cedula' => 'sometimes|required',
+            'nom1' => 'sometimes|required',
+            'ape1' => 'sometimes|required',
+            'partido_id' => 'sometimes|required',
+            'lidere_id' => 'sometimes|nullable|integer|exists:lideres,id',
         ]);
-            
-        if($validator->fails()){
+
+        if ($validator->fails()) {
             return response()->json($validator->messages(), 200);
         }
-        
-        $testigo = testigo::find($id);
-        $testigo->nom1 = $request->nom1;
-        $testigo->nom2 = $request->nom2;
-        $testigo->ape1 = $request->ape1;
-        $testigo->ape2 = $request->ape2;
-        $testigo->celular = $request->celular;
-        $testigo->departamento_id = $request->departamento_id;
-        $testigo->departamento = $request->departamento;
-        $testigo->municipio_id = $request->municipio_id;
-        $testigo->municipio = $request->municipio;
-        $testigo->zona = $request->zona;
-        $testigo->puesto = $request->puesto;
-        $testigo->codigo_interno = $request->codigo_interno;
+
+        foreach ($request->only([
+            'divipoletestigo_id', 'partido_id', 'lidere_id', 'cedula',
+            'nom1', 'nom2', 'ape1', 'ape2', 'email', 'telefono',
+        ]) as $field => $value) {
+            $testigo->$field = $value;
+        }
         $testigo->user_id = Auth::user()->id;
-        
         $testigo->save();
 
-        $delete_mesas = Testigosmesa::where('testigo_id', $id)->delete();
-        $mesa = Testigo::find($id);
-        $mesa->mesas()->create(['mesa' => $request->mesa]);
+        if ($request->has('mesa')) {
+            $testigo->mesas()->delete();
+            $testigo->mesas()->create(['mesa' => $request->mesa]);
+        }
 
-        $data = array(
+        return response()->json([
             'status' => 'success',
             'code' => 200,
-            'testigo' => $testigo
-        );
-        return response()->json($data, $data['code']);
+            'testigo' => Testigo::conLider()->findOrFail($id),
+        ]);
     }
 }
