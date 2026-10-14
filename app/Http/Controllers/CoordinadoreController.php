@@ -209,10 +209,44 @@ class CoordinadoreController extends Controller
             }
         }
 
+        $puestos = [];
+        $municipios = [];
+        if ((int) $agrupacion === 3) {
+            $condicionCoordinador = $id == -1 ? '' : ' AND l.coordinadore_id = ?';
+            $bindings = $id == -1 ? [] : [$id];
+
+            $puestos = DB::select("SELECT lv.departamento_id, lv.municipio_id,
+                    d.departamento, m.municipio, lv.zona, lv.puesto,
+                    lv.nombre_puesto, COUNT(lv.id) as cantidad
+                FROM listadovotantes as lv
+                INNER JOIN lideres as l ON lv.lidere_id = l.id
+                INNER JOIN coordinadores as c ON l.coordinadore_id = c.id
+                INNER JOIN departamentos as d ON lv.departamento_id = d.id
+                INNER JOIN municipios as m ON lv.departamento_id = m.departamento_id AND lv.municipio_id = m.id
+                WHERE lv.observacione_id != 4 $condicionCoordinador
+                GROUP BY lv.departamento_id, lv.municipio_id, d.departamento,
+                    m.municipio, lv.zona, lv.puesto, lv.nombre_puesto
+                ORDER BY cantidad DESC, lv.nombre_puesto", $bindings);
+
+            // El ID municipal solo es único dentro de su departamento.
+            foreach ($puestos as $puesto) {
+                $clave = $puesto->departamento_id . '-' . $puesto->municipio_id;
+                $municipios[$clave] = [
+                    'id' => $puesto->municipio_id,
+                    'departamento_id' => $puesto->departamento_id,
+                    'municipio' => $puesto->municipio,
+                    'departamento' => $puesto->departamento,
+                ];
+            }
+            $municipios = array_values($municipios);
+        }
+
         $data = array(
             "code" => 200,
             "status" => 'success',
-            "info" => $info
+            "info" => $info,
+            "puestos" => $puestos,
+            "municipios" => $municipios
         );
 
         return response()->json($data, $data['code']);
