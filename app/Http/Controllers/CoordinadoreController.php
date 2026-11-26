@@ -25,20 +25,21 @@ class CoordinadoreController extends Controller
         ini_set('memory_limit', '-1');
         set_time_limit(3000000);
 
-        $token = DB::select("SELECT oat.id, u.candidato_id, c.corporacione_id, u.id as user_id
+        $token = DB::select("SELECT oat.id, u.candidato_id, c.corporacione_id, u.id as user_id, u.role_id
             FROM oauth_access_tokens as oat 
             INNER JOIN users as u
             ON oat.user_id = u.id
             INNER JOIN candidatos as c
             ON u.candidato_id = c.id
-            WHERE oat.revoked = 0 AND oat.id = '". $token_id. " '  "
+            WHERE oat.revoked = 0 AND oat.id = ?", [$token_id]
         );
 
         if(count($token) > 0){
 
             $condicion = '';
             $order = '';
-            $candidato = $token[0]->candidato_id;
+            $usuario = $token[0];
+            $bindings = [$usuario->candidato_id];
 
             if($coordinador == 'undefined' || $coordinador == -1){
 
@@ -46,23 +47,31 @@ class CoordinadoreController extends Controller
                     $condicion = "";
                     $order = "lv.nombre_puesto";
                 }else{
-                    $condicion = "AND l.id = $lider AND l.candidato_id = $candidato";
+                    $condicion = "AND l.id = ?";
+                    $bindings[] = $lider;
                     $order = "l.nombres, l.apellidos";                
                 }
                 
             }else{
                 
                 if($lider == 'undefined' || $lider == -1){
-                    $condicion = "AND c.id = $coordinador";
+                    $condicion = "AND c.id = ?";
+                    $bindings[] = $coordinador;
                     $order = "c.nombres, c.apellidos";                
                 }else{
-                    $condicion = "AND c.id = $coordinador AND l.id = $lider ";
+                    $condicion = "AND c.id = ? AND l.id = ?";
+                    $bindings[] = $coordinador;
+                    $bindings[] = $lider;
                     $order = "c.nombres, c.apellidos, l.nombres, l.apellidos";                
                 }
 
             }
 
-            $condicion_sublider = ($sublider == -1) ? '' : "AND lv.sublidere_id = $sublider";
+            $condicion_sublider = '';
+            if($sublider != -1){
+                $condicion_sublider = "AND lv.sublidere_id = ?";
+                $bindings[] = $sublider;
+            }
 
             $condicion_divipole = '';
             $tipo = $request->query('tipo');
@@ -70,6 +79,11 @@ class CoordinadoreController extends Controller
             $municipio_id = $request->query('municipio_id');
 
             if($tipo === 'divipole'){
+                if((int)$usuario->role_id === 6){
+                    $condicion_divipole .= " AND c.id = ?";
+                    $bindings[] = $usuario->user_id;
+                }
+
                 if(!empty($departamento_id) && $departamento_id != -1 && $departamento_id != 'undefined'){
                     $condicion_divipole .= " AND lv.departamento_id = " . (int)$departamento_id;
                 }
@@ -89,8 +103,8 @@ class CoordinadoreController extends Controller
                 LEFT JOIN sublideres as sl ON lv.sublidere_id = sl.id
                 LEFT JOIN coordinadores as c ON l.coordinadore_id = c.id AND l.candidato_id = c.candidato_id
                 INNER JOIN observaciones as o ON lv.observacione_id = o.id
-                WHERE lv.candidato_id = $candidato $condicion $condicion_sublider $condicion_divipole
-                ORDER BY $order  ASC");
+                WHERE lv.candidato_id = ? $condicion $condicion_sublider $condicion_divipole
+                ORDER BY $order  ASC", $bindings);
 
             $spreadsheet = IOFactory::load('plantillas/votantes.xlsx');
             $sheet = $spreadsheet->getSheetByName('GENERAL');
